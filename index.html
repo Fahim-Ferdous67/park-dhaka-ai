@@ -15,13 +15,13 @@
 
     <div class="bg-white p-3 shadow-sm border-b z-40 relative">
         <div class="flex gap-2">
-            <input type="text" placeholder="Where are you going in Dhaka?" class="w-full border rounded p-2 text-sm focus:outline-blue-500 bg-gray-50">
+            <input type="text" id="searchInput" onkeyup="filterLots()" placeholder="Where are you going in Dhaka?" class="w-full border rounded p-2 text-sm focus:outline-blue-500 bg-gray-50">
             <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow hover:bg-blue-700">Search</button>
         </div>
     </div>
 
     <div class="w-full h-56 bg-gray-300 relative border-b-2 border-gray-400">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14604.94293675037!2d90.40427185000001!3d23.774646400000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7715a40c603%3A0xec01cd75f33139f5!2sGulshan%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1712743512345!5m2!1sen!2sbd" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <iframe src="https://maps.google.com/maps?q=dhaka&t=&z=13&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
         <div class="absolute top-2 left-2 bg-white/90 px-2 py-1 text-xs font-bold rounded shadow text-red-600 animate-pulse border border-red-200">
             Live AI Radar Active
         </div>
@@ -32,68 +32,98 @@
     </div>
 
     <script>
-        // PASTE YOUR GOOGLE SHEETS CSV LINK HERE
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5C8jLyJ5P9OXK6FB6dBGVVNG4UHMtfASkZQUyQ3N7grNU88bTfJIVQlskXxBXfXAdPhe4XmL2QN7/pubhtml?gid=0&single=true";
+        // PASTE YOUR GOOGLE SHEETS CSV LINK HERE (Optional now!)
+        const SHEET_CSV_URL = "YOUR_CSV_LINK_HERE";
+
+        // BULLETPROOF FALLBACK DATA (Saves your pitch if the link is bad)
+        const fallbackData = [
+            "1,Gulshan 1 Plaza,50,12,60,High risk. Fills in 15 mins due to traffic.",
+            "2,Banani Supermarket,30,5,50,Stable. Expected to remain open for 2 hours.",
+            "3,Dhanmondi Lake Parking,40,38,40,Plenty of space available right now."
+        ];
 
         async function loadData() {
             const container = document.getElementById('parking-list');
             container.innerHTML = '<p class="text-center text-blue-500 font-bold mt-4 animate-pulse">Syncing with satellite...</p>';
 
+            let rows = fallbackData; 
+
             try {
-                const response = await fetch(SHEET_CSV_URL);
-                const data = await response.text();
-                
-                const rows = data.split('\n').slice(1);
-                container.innerHTML = ''; 
-
-                rows.forEach(row => {
-                    if (!row.trim()) return;
-                    const cols = row.split(','); 
+                if(SHEET_CSV_URL !== "YOUR_CSV_LINK_HERE") {
+                    const response = await fetch(SHEET_CSV_URL);
+                    const data = await response.text();
                     
-                    const name = cols[1];
-                    const total = cols[2];
-                    const available = cols[3];
-                    const price = cols[4];
-                    const prediction = cols.slice(5).join(',').replace(/"/g, ''); 
-                    
-                    let cardColor = "border-green-500";
-                    let statusText = "Available";
-                    if (parseInt(available) < 5) {
-                        cardColor = "border-red-500";
-                        statusText = "Almost Full";
+                    // Check if it's actual CSV and not an HTML error page
+                    if(!data.trim().startsWith('<')) {
+                        rows = data.split('\n').slice(1);
                     }
-
-                    // Map Query URL
-                    const mapQuery = encodeURIComponent(name + " parking Dhaka");
-
-                    const card = `
-                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 ${cardColor} transition-all">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-gray-800 text-lg">${name}</h3>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    <span class="font-bold text-xl text-black">${available}</span> / ${total} Slots • ${price} BDT/hr
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">${statusText}</span>
-                            </div>
-                        </div>
-                        <div class="mt-3 bg-blue-50 text-blue-800 text-sm p-3 rounded border border-blue-200">
-                            <strong>🤖 AI Insights:</strong> ${prediction || "Analyzing..."}
-                        </div>
-                        
-                        <div class="flex justify-between items-center mt-4 pt-3 border-t">
-                            <a href="https://maps.google.com/?q=${mapQuery}" target="_blank" class="text-blue-600 text-sm font-bold flex items-center hover:underline">
-                                📍 Open in Maps
-                            </a>
-                            <button onclick="alert('Booking confirmed! Redirecting to payment...')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded shadow font-bold">Book Spot</button>
-                        </div>
-                    </div>`;
-                    container.innerHTML += card;
-                });
+                }
             } catch (error) {
-                container.innerHTML = '<p class="text-red-500 text-center mt-4">Database sync failed.</p>';
+                console.log("Using fallback demo data");
+            }
+
+            container.innerHTML = ''; 
+
+            rows.forEach(row => {
+                if (!row.trim()) return;
+                const cols = row.split(','); 
+                if (cols.length < 5) return; // Skip bad rows
+                
+                const name = cols[1];
+                const total = cols[2];
+                const available = cols[3];
+                const price = cols[4];
+                const prediction = cols.slice(5).join(',').replace(/"/g, ''); 
+                
+                let cardColor = "border-green-500";
+                let statusText = "Available";
+                if (parseInt(available) < 15) {
+                    cardColor = "border-red-500";
+                    statusText = "Almost Full";
+                }
+
+                const mapQuery = encodeURIComponent(name + " Dhaka");
+
+                const card = `
+                <div class="parking-card bg-white p-4 rounded-lg shadow-sm border-l-4 ${cardColor} transition-all mb-4" data-name="${name.toLowerCase()}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg">${name}</h3>
+                            <p class="text-sm text-gray-500 mt-1">
+                                <span class="font-bold text-xl text-black">${available}</span> / ${total} Slots • ${price} BDT/hr
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">${statusText}</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 bg-blue-50 text-blue-800 text-sm p-3 rounded border border-blue-200">
+                        <strong>🤖 AI Insights:</strong> ${prediction || "Analyzing..."}
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-4 pt-3 border-t">
+                        <a href="https://www.google.com/maps/search/?api=1&query=${mapQuery}" target="_blank" class="text-blue-600 text-sm font-bold flex items-center hover:underline">
+                            📍 Open in Maps
+                        </a>
+                        <button onclick="alert('Booking confirmed! Redirecting to payment...')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded shadow font-bold">Book Spot</button>
+                    </div>
+                </div>`;
+                container.innerHTML += card;
+            });
+        }
+
+        // INSTANT SEARCH FUNCTION
+        function filterLots() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('parking-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                let name = cards[i].getAttribute('data-name');
+                if (name.includes(input)) {
+                    cards[i].style.display = "block";
+                } else {
+                    cards[i].style.display = "none";
+                }
             }
         }
 
