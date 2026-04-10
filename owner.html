@@ -8,9 +8,23 @@
 </head>
 <body class="bg-gray-800 text-white font-sans h-screen flex flex-col">
 
-    <header class="bg-gray-900 p-4 text-center shadow-lg">
-        <h1 class="text-2xl font-bold text-blue-400">🅿️ Lot Manager</h1>
-        <p class="text-sm text-gray-400">Gulshan 1 Plaza (ID: 1)</p>
+    <header class="bg-gray-900 p-4 shadow-lg flex justify-between items-center z-50">
+        <div>
+            <h1 class="text-xl font-bold text-blue-400">🅿️ Lot Manager</h1>
+            <p class="text-xs text-gray-400 mt-1">Gulshan 1 Plaza</p>
+        </div>
+        
+        <div class="flex items-center gap-2 bg-gray-700/50 px-3 py-1.5 rounded-full border border-gray-600 shadow-inner">
+            <div class="bg-gray-300 rounded-full p-1 flex-shrink-0">
+                <svg class="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="text-left text-white">
+                <p class="text-sm font-bold leading-none">Shafin</p>
+                <p class="text-[10px] text-gray-400 mt-1 leading-none tracking-wide">01758970619</p>
+            </div>
+        </div>
     </header>
 
     <div class="flex-grow flex flex-col items-center justify-center p-6 space-y-8">
@@ -35,42 +49,37 @@
     </div>
 
     <script>
-    const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4"; // Put your URL back here!
+        // PASTE YOUR MAKE.COM WEBHOOK URL HERE!
+        const WEBHOOK_URL = "YOUR_MAKE_WEBHOOK_URL_HERE";
 
-        // This tells the app to refresh the page automatically every 10 seconds 
-// so the owner always sees the latest slot count from the database.
-setInterval(function() {
-    window.location.reload();
-}, 10000);
+        function updateSlots(action) {
+            document.getElementById('status-message').classList.remove('hidden');
+            
+            // Let the app do the math first
+            let counter = document.getElementById('slot-counter');
+            let currentVal = parseInt(counter.innerText);
+            let newVal = currentVal;
+            
+            if(action === 'entered' && currentVal > 0) newVal = currentVal - 1;
+            if(action === 'left') newVal = currentVal + 1;
+            
+            counter.innerText = newVal; // Update UI
 
-    function updateSlots(action) {
-        document.getElementById('status-message').classList.remove('hidden');
-        
-        // Let the app do the math first
-        let counter = document.getElementById('slot-counter');
-        let currentVal = parseInt(counter.innerText);
-        let newVal = currentVal;
-        
-        if(action === 'entered' && currentVal > 0) newVal = currentVal - 1;
-        if(action === 'left') newVal = currentVal + 1;
-        
-        counter.innerText = newVal; // Update UI
-
-        // Send the exact new number to Make.com
-        fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                "lot_id": 1,
-                "action": action,
-                "new_slots": newVal
-            })
-        }).then(() => {
-            setTimeout(() => {
-                document.getElementById('status-message').classList.add('hidden');
-            }, 1000);
-        }).catch(err => console.error(err));
-    }
-</script>
+            // Send the exact new number to Make.com
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "lot_id": 1,
+                    "action": action,
+                    "new_slots": newVal
+                })
+            }).then(() => {
+                setTimeout(() => {
+                    document.getElementById('status-message').classList.add('hidden');
+                }, 1000);
+            }).catch(err => console.error(err));
+        }
+    </script>
 </body>
 </html>
