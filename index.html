@@ -35,32 +35,36 @@
     </div>
 
     <script>
-        // We will put your Make.com Webhook URL here in the next step!
-        const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4";
+    const WEBHOOK_URL = "YOUR_MAKE_WEBHOOK_URL_HERE"; // Put your URL back here!
 
-        function updateSlots(action) {
-            document.getElementById('status-message').classList.remove('hidden');
-            
-            // Visual mock update for the UI immediately
-            let counter = document.getElementById('slot-counter');
-            let currentVal = parseInt(counter.innerText);
-            if(action === 'entered' && currentVal > 0) counter.innerText = currentVal - 1;
-            if(action === 'left') counter.innerText = currentVal + 1;
+    function updateSlots(action) {
+        document.getElementById('status-message').classList.remove('hidden');
+        
+        // Let the app do the math first
+        let counter = document.getElementById('slot-counter');
+        let currentVal = parseInt(counter.innerText);
+        let newVal = currentVal;
+        
+        if(action === 'entered' && currentVal > 0) newVal = currentVal - 1;
+        if(action === 'left') newVal = currentVal + 1;
+        
+        counter.innerText = newVal; // Update UI
 
-            // Send data to Make.com
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    "lot_id": 1,
-                    "action": action
-                })
-            }).then(() => {
-                setTimeout(() => {
-                    document.getElementById('status-message').classList.add('hidden');
-                }, 1000);
-            }).catch(err => console.error(err));
-        }
-    </script>
+        // Send the exact new number to Make.com
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "lot_id": 1,
+                "action": action,
+                "new_slots": newVal
+            })
+        }).then(() => {
+            setTimeout(() => {
+                document.getElementById('status-message').classList.add('hidden');
+            }, 1000);
+        }).catch(err => console.error(err));
+    }
+</script>
 </body>
 </html>
