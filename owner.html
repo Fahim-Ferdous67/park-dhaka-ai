@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkDhaka | Owner Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 text-white font-sans h-screen flex flex-col">
+
+    <header class="bg-gray-900 p-4 text-center shadow-lg">
+        <h1 class="text-2xl font-bold text-blue-400">🅿️ Lot Manager</h1>
+        <p class="text-sm text-gray-400">Gulshan 1 Plaza (ID: 1)</p>
+    </header>
+
+    <div class="flex-grow flex flex-col items-center justify-center p-6 space-y-8">
+        
+        <div class="text-center">
+            <h2 class="text-5xl font-extrabold text-white" id="slot-counter">12</h2>
+            <p class="text-gray-400 mt-2 uppercase tracking-wide">Available Slots</p>
+        </div>
+
+        <div class="w-full max-w-sm space-y-4">
+            <button onclick="updateSlots('entered')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
+                🚗 Car Entered (-1)
+            </button>
+            
+            <button onclick="updateSlots('left')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
+                🚙 Car Left (+1)
+            </button>
+        </div>
+        
+        <p id="status-message" class="text-yellow-400 text-sm hidden">Sending update to server...</p>
+
+    </div>
+
+    <script>
+        // We will put your Make.com Webhook URL here in the next step!
+        const WEBHOOK_URL = "YOUR_MAKE_WEBHOOK_URL_HERE";
+
+        function updateSlots(action) {
+            document.getElementById('status-message').classList.remove('hidden');
+            
+            // Visual mock update for the UI immediately
+            let counter = document.getElementById('slot-counter');
+            let currentVal = parseInt(counter.innerText);
+            if(action === 'entered' && currentVal > 0) counter.innerText = currentVal - 1;
+            if(action === 'left') counter.innerText = currentVal + 1;
+
+            // Send data to Make.com
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "lot_id": 1,
+                    "action": action
+                })
+            }).then(() => {
+                setTimeout(() => {
+                    document.getElementById('status-message').classList.add('hidden');
+                }, 1000);
+            }).catch(err => console.error(err));
+        }
+    </script>
+</body>
+</html>
