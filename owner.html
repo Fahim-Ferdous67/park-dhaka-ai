@@ -6,7 +6,7 @@
     <title>ParkDhaka | Owner Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-800 text-white font-sans h-screen flex flex-col overflow-hidden relative">
+<body class="bg-gray-800 text-white font-sans h-screen flex flex-col relative overflow-hidden">
 
     <div id="notification-toast" class="absolute top-20 right-4 bg-green-500 text-white font-bold px-6 py-4 rounded-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex items-center gap-3">
         <span class="text-2xl">🔔</span>
@@ -35,33 +35,30 @@
         </div>
     </header>
 
-    <div class="flex-grow flex flex-col items-center justify-center p-6 space-y-8 z-10 relative">
+    <main class="flex-grow flex flex-col items-center justify-center p-6 space-y-8 z-10 relative w-full max-w-md mx-auto">
         <div class="text-center">
             <h2 class="text-7xl font-extrabold text-white transition-all duration-300" id="slot-counter">12</h2>
             <p class="text-gray-400 mt-3 uppercase tracking-widest text-sm font-bold">Available Slots</p>
             <p id="sync-status" class="text-[10px] text-gray-500 mt-2 animate-pulse">📡 Live Sync Active</p>
         </div>
 
-        <div class="w-full max-w-sm space-y-4">
-            <button onclick="updateSlots('entered')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
+        <div class="w-full space-y-4">
+            <button onclick="updateSlots('entered')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center gap-2">
                 🚗 Car Entered (-1)
             </button>
-            <button onclick="updateSlots('left')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
+            <button onclick="updateSlots('left')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center gap-2">
                 🚙 Car Left (+1)
             </button>
         </div>
         
         <p id="status-message" class="text-yellow-400 text-sm hidden">Sending update to server...</p>
-    </div>
+    </main>
 
     <script>
-        // 1. PASTE YOUR GOOGLE SHEETS CSV LINK HERE
+        // PASTE YOUR LINKS HERE BEFORE COMMITTING
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5C8jLyJ5P9OXK6FB6dBGVVNG4UHMtfASkZQUyQ3N7grNU88bTfJIVQlskXxBXfXAdPhe4XmL2QN7/pubhtml?gid=0&single=true";
-        
-        // 2. PASTE YOUR MAKE.COM WEBHOOK URL HERE
         const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4";
 
-        // FUNCTION 1: Sending manual guard taps to Make.com
         function updateSlots(action) {
             document.getElementById('status-message').classList.remove('hidden');
             
@@ -89,9 +86,8 @@
             }).catch(err => console.error(err));
         }
 
-        // FUNCTION 2: The "Live Sync" Hack (Checks database every 3 seconds)
         setInterval(async () => {
-            if (SHEET_CSV_URL === "YOUR_CSV_LINK_HERE") return; // Skip if no link
+            if (SHEET_CSV_URL === "YOUR_CSV_LINK_HERE") return; 
 
             try {
                 const response = await fetch(SHEET_CSV_URL);
@@ -99,89 +95,35 @@
                 
                 if (!data.trim().startsWith('<')) {
                     const rows = data.split('\n').slice(1);
-                    const myLot = rows.find(r => r.startsWith('1,')); // Looks for Lot ID 1
+                    const myLot = rows.find(r => r.startsWith('1,')); 
                     
                     if (myLot) {
                         const dbSlots = parseInt(myLot.split(',')[3]);
                         const counterEl = document.getElementById('slot-counter');
                         const currentSlots = parseInt(counterEl.innerText);
 
-                        // If the database has FEWER slots than the screen shows, a customer booked!
                         if (dbSlots < currentSlots) {
                             showNotification();
-                            
-                            // Make the number pop visually
                             counterEl.classList.add('text-green-400', 'scale-110');
                             setTimeout(() => {
                                 counterEl.classList.remove('text-green-400', 'scale-110');
                             }, 1000);
                         }
                         
-                        // Always keep the UI matched with the true database number
                         counterEl.innerText = dbSlots;
                     }
                 }
             } catch (error) {
                 console.log("Sync error", error);
             }
-        }, 3000); // 3000 milliseconds = 3 seconds
+        }, 3000);
 
         function showNotification() {
             const toast = document.getElementById('notification-toast');
-            toast.classList.remove('translate-x-full'); // Slide in
-            
-            // Slide out after 4 seconds
+            toast.classList.remove('translate-x-full'); 
             setTimeout(() => {
                 toast.classList.add('translate-x-full');
             }, 4000);
-        }
-    </script>
-</body>
-</html>        <div class="w-full max-w-sm space-y-4">
-            <button onclick="updateSlots('entered')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
-                🚗 Car Entered (-1)
-            </button>
-            
-            <button onclick="updateSlots('left')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
-                🚙 Car Left (+1)
-            </button>
-        </div>
-        
-        <p id="status-message" class="text-yellow-400 text-sm hidden">Sending update to server...</p>
-
-    </div>
-
-    <script>
-        // PASTE YOUR MAKE.COM WEBHOOK URL HERE!
-        const WEBHOOK_URL = "YOUR_MAKE_WEBHOOK_URL_HERE";
-
-        function updateSlots(action) {
-            document.getElementById('status-message').classList.remove('hidden');
-            
-            // Let the app do the math first
-            let counter = document.getElementById('slot-counter');
-            let currentVal = parseInt(counter.innerText);
-            let newVal = currentVal;
-            
-            if(action === 'entered' && currentVal > 0) newVal = currentVal - 1;
-            if(action === 'left') newVal = currentVal + 1;
-            
-            counter.innerText = newVal; // Update UI
-
-            // Send the exact new number to Make.com
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    "lot_id": 1,
-                    "action": action,
-                    "new_slots": newVal
-                })
-            }).then(() => {
-                setTimeout(() => {
-                    document.getElementById('status-message').classList.add('hidden');
-                }, 1000);
-            }).catch(err => console.error(err));
         }
     </script>
 </body>
