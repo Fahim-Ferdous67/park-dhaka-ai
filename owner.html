@@ -125,6 +125,29 @@
                 toast.classList.add('translate-x-full');
             }, 4000);
         }
+        // ==========================================
+        // Press "N" on your keyboard to manually trigger the live notification!
+        // ==========================================
+        document.addEventListener('keydown', function(event) {
+            // If you press 'n' or 'N'
+            if (event.key === 'n' || event.key === 'N') {
+                // 1. Show the green toast notification
+                showNotification();
+                
+                // 2. Grab the current number and subtract 1
+                const counterEl = document.getElementById('slot-counter');
+                let currentSlots = parseInt(counterEl.innerText);
+                if(currentSlots > 0) {
+                    counterEl.innerText = currentSlots - 1;
+                }
+                
+                // 3. Make the number "pop" visually just like a real sync
+                counterEl.classList.add('text-green-400', 'scale-110');
+                setTimeout(() => {
+                    counterEl.classList.remove('text-green-400', 'scale-110');
+                }, 1000);
+            }
+        });
     </script>
 </body>
 </html>
