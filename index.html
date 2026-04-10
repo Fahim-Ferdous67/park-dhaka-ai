@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkDhaka | Find Parking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans pb-10">
+
+    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-50">
         <div class="flex justify-between items-center">
             <h1 class="text-xl font-bold cursor-pointer hover:text-blue-200 transition" onclick="loadData()" title="Tap to refresh">🅿️ ParkDhaka</h1>
             
             <div class="flex items-center gap-2 bg-blue-800/50 px-3 py-1.5 rounded-full border border-blue-500/50 shadow-inner">
-                <div class="bg-gray-100 rounded-full p-1">
+                <div class="bg-gray-100 rounded-full p-1 flex-shrink-0">
                     <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                     </svg>
                 </div>
-                <div class="text-left hidden sm:block">
+                <div class="text-left">
                     <p class="text-sm font-bold leading-none">Rawkhaun</p>
                     <p class="text-[10px] text-blue-200 mt-1 leading-none tracking-wide">01310669386</p>
                 </div>
             </div>
         </div>
-    </header>
-<body class="bg-gray-100 font-sans pb-10">
-
-    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-xl font-bold">🅿️ ParkDhaka</h1>
-        <button onclick="loadData()" class="text-xs bg-white text-blue-600 px-3 py-1 rounded shadow font-bold active:scale-95 transition">Refresh Live Data</button>
     </header>
 
     <div class="bg-white p-3 shadow-sm border-b z-40 relative">
@@ -43,10 +45,8 @@
     </div>
 
     <script>
-        // 1. PASTE YOUR GOOGLE SHEETS CSV LINK HERE
+        // PUT YOUR LINKS HERE (Or leave empty to use the fallback demo data)
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5C8jLyJ5P9OXK6FB6dBGVVNG4UHMtfASkZQUyQ3N7grNU88bTfJIVQlskXxBXfXAdPhe4XmL2QN7/pubhtml?gid=0&single=true";
-        
-        // 2. PASTE YOUR MAKE.COM WEBHOOK URL HERE (The same one from your Owner App)
         const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4"; 
 
         const fallbackData = [
@@ -80,7 +80,7 @@
                 const cols = row.split(','); 
                 if (cols.length < 5) return; 
                 
-                const id = cols[0]; // Gets the Lot ID for Make.com
+                const id = cols[0]; 
                 const name = cols[1];
                 const total = cols[2];
                 const available = cols[3];
@@ -114,7 +114,7 @@
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 pt-3 border-t">
-                        <a href="https://www.google.com/maps/search/?api=1&query=${mapQuery}" target="_blank" class="text-blue-600 text-sm font-bold flex items-center hover:underline">
+                        <a href="https://maps.google.com/?q=${mapQuery}" target="_blank" class="text-blue-600 text-sm font-bold flex items-center hover:underline">
                             📍 Open in Maps
                         </a>
                         <button onclick="bookSpot('${id}', ${available})" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded shadow font-bold">Book Spot</button>
@@ -134,14 +134,12 @@
             }
         }
 
-        // THE LIVE BACKEND CONNECTION
         function bookSpot(lotId, currentAvailable) {
             if(parseInt(currentAvailable) <= 0) {
                 alert("Sorry, this lot is completely full!");
                 return;
             }
             
-            // Show processing status
             let btn = event.target;
             let originalText = btn.innerText;
             btn.innerText = "Booking...";
@@ -149,18 +147,17 @@
 
             let newVal = parseInt(currentAvailable) - 1;
 
-            // Send data directly to your Make.com Webhook
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     "lot_id": lotId,
-                    "action": "entered", // Tricks the webhook into treating it like a car entering
+                    "action": "entered", 
                     "new_slots": newVal
                 })
             }).then(() => {
                 alert("✅ Booking Confirmed! Spot secured.");
-                loadData(); // Auto-refresh the page to show the new slot count
+                loadData(); 
             }).catch(err => {
                 alert("❌ Booking failed. Please check connection.");
                 btn.innerText = originalText;
