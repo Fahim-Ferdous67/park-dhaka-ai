@@ -32,10 +32,12 @@
     </div>
 
     <script>
-        // PASTE YOUR GOOGLE SHEETS CSV LINK HERE (Optional now!)
-        const SHEET_CSV_URL = "YOUR_CSV_LINK_HERE";
+        // 1. PASTE YOUR GOOGLE SHEETS CSV LINK HERE
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5C8jLyJ5P9OXK6FB6dBGVVNG4UHMtfASkZQUyQ3N7grNU88bTfJIVQlskXxBXfXAdPhe4XmL2QN7/pubhtml?gid=0&single=true";
+        
+        // 2. PASTE YOUR MAKE.COM WEBHOOK URL HERE (The same one from your Owner App)
+        const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4"; 
 
-        // BULLETPROOF FALLBACK DATA (Saves your pitch if the link is bad)
         const fallbackData = [
             "1,Gulshan 1 Plaza,50,12,60,High risk. Fills in 15 mins due to traffic.",
             "2,Banani Supermarket,30,5,50,Stable. Expected to remain open for 2 hours.",
@@ -52,8 +54,6 @@
                 if(SHEET_CSV_URL !== "YOUR_CSV_LINK_HERE") {
                     const response = await fetch(SHEET_CSV_URL);
                     const data = await response.text();
-                    
-                    // Check if it's actual CSV and not an HTML error page
                     if(!data.trim().startsWith('<')) {
                         rows = data.split('\n').slice(1);
                     }
@@ -67,8 +67,9 @@
             rows.forEach(row => {
                 if (!row.trim()) return;
                 const cols = row.split(','); 
-                if (cols.length < 5) return; // Skip bad rows
+                if (cols.length < 5) return; 
                 
+                const id = cols[0]; // Gets the Lot ID for Make.com
                 const name = cols[1];
                 const total = cols[2];
                 const available = cols[3];
@@ -105,26 +106,55 @@
                         <a href="https://www.google.com/maps/search/?api=1&query=${mapQuery}" target="_blank" class="text-blue-600 text-sm font-bold flex items-center hover:underline">
                             📍 Open in Maps
                         </a>
-                        <button onclick="alert('Booking confirmed! Redirecting to payment...')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded shadow font-bold">Book Spot</button>
+                        <button onclick="bookSpot('${id}', ${available})" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-2 rounded shadow font-bold">Book Spot</button>
                     </div>
                 </div>`;
                 container.innerHTML += card;
             });
         }
 
-        // INSTANT SEARCH FUNCTION
         function filterLots() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let cards = document.getElementsByClassName('parking-card');
-            
             for (let i = 0; i < cards.length; i++) {
                 let name = cards[i].getAttribute('data-name');
-                if (name.includes(input)) {
-                    cards[i].style.display = "block";
-                } else {
-                    cards[i].style.display = "none";
-                }
+                if (name.includes(input)) cards[i].style.display = "block";
+                else cards[i].style.display = "none";
             }
+        }
+
+        // THE LIVE BACKEND CONNECTION
+        function bookSpot(lotId, currentAvailable) {
+            if(parseInt(currentAvailable) <= 0) {
+                alert("Sorry, this lot is completely full!");
+                return;
+            }
+            
+            // Show processing status
+            let btn = event.target;
+            let originalText = btn.innerText;
+            btn.innerText = "Booking...";
+            btn.classList.add("opacity-50", "cursor-not-allowed");
+
+            let newVal = parseInt(currentAvailable) - 1;
+
+            // Send data directly to your Make.com Webhook
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "lot_id": lotId,
+                    "action": "entered", // Tricks the webhook into treating it like a car entering
+                    "new_slots": newVal
+                })
+            }).then(() => {
+                alert("✅ Booking Confirmed! Spot secured.");
+                loadData(); // Auto-refresh the page to show the new slot count
+            }).catch(err => {
+                alert("❌ Booking failed. Please check connection.");
+                btn.innerText = originalText;
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+            });
         }
 
         window.onload = loadData;
