@@ -37,6 +37,12 @@
     <script>
     const WEBHOOK_URL = "https://hook.us2.make.com/qsmmzapt7po2qfmknku41ju6n3p5ppf4"; // Put your URL back here!
 
+        // This tells the app to refresh the page automatically every 10 seconds 
+// so the owner always sees the latest slot count from the database.
+setInterval(function() {
+    window.location.reload();
+}, 10000);
+
     function updateSlots(action) {
         document.getElementById('status-message').classList.remove('hidden');
         
