@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ParkDhaka | Find Parking</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl font-bold cursor-pointer hover:text-blue-200 transition" onclick="loadData()" title="Tap to refresh">🅿️ ParkDhaka</h1>
+            
+            <div class="flex items-center gap-2 bg-blue-800/50 px-3 py-1.5 rounded-full border border-blue-500/50 shadow-inner">
+                <div class="bg-gray-100 rounded-full p-1">
+                    <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-left hidden sm:block">
+                    <p class="text-sm font-bold leading-none">Rawkhaun</p>
+                    <p class="text-[10px] text-blue-200 mt-1 leading-none tracking-wide">01310669386</p>
+                </div>
+            </div>
+        </div>
+    </header>
 <body class="bg-gray-100 font-sans pb-10">
 
     <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
