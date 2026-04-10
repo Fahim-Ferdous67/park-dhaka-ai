@@ -8,11 +8,14 @@
 </head>
 <body class="bg-gray-800 text-white font-sans h-screen flex flex-col relative overflow-hidden">
 
-    <div id="notification-toast" class="absolute top-20 right-4 bg-green-500 text-white font-bold px-6 py-4 rounded-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex items-center gap-3">
-        <span class="text-2xl">🔔</span>
+    <div id="notification-toast" class="absolute top-20 right-4 bg-green-500 text-white font-bold px-5 py-4 rounded-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex items-start gap-4 border border-green-400">
+        <span class="text-3xl mt-1">🔔</span>
         <div>
-            <p class="text-sm">New Online Booking!</p>
-            <p class="text-xs font-normal text-green-100">Slot reserved by user.</p>
+            <p class="text-lg font-extrabold uppercase tracking-wide">New Booking!</p>
+            <div class="mt-2 bg-green-700/40 p-2 rounded border border-green-400/50">
+                <p class="text-sm font-medium">👤 Driver: <span class="font-bold text-white">Rawkhaun</span></p>
+                <p class="text-sm font-medium">📞 Contact: <span class="font-mono text-green-100">01310669385</span></p>
+            </div>
         </div>
     </div>
 
@@ -121,27 +124,26 @@
         function showNotification() {
             const toast = document.getElementById('notification-toast');
             toast.classList.remove('translate-x-full'); 
+            
+            // UPDATED: Now stays visible for 10 seconds (10000ms)
             setTimeout(() => {
                 toast.classList.add('translate-x-full');
-            }, 4000);
+            }, 10000);
         }
+
         // ==========================================
-        // Press "N" on your keyboard to manually trigger the live notification!
+        // STAGE MAGIC TRICK: Press "N" on your keyboard!
         // ==========================================
         document.addEventListener('keydown', function(event) {
-            // If you press 'n' or 'N'
             if (event.key === 'n' || event.key === 'N') {
-                // 1. Show the green toast notification
                 showNotification();
                 
-                // 2. Grab the current number and subtract 1
                 const counterEl = document.getElementById('slot-counter');
                 let currentSlots = parseInt(counterEl.innerText);
                 if(currentSlots > 0) {
                     counterEl.innerText = currentSlots - 1;
                 }
                 
-                // 3. Make the number "pop" visually just like a real sync
                 counterEl.classList.add('text-green-400', 'scale-110');
                 setTimeout(() => {
                     counterEl.classList.remove('text-green-400', 'scale-110');
